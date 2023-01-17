@@ -1,0 +1,11 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+name: genre
+prefix: /v1/genre/
+rewrite: ''
+service: genre:3061
+timeout_ms: 120000
+bypass_auth: true
+---
+

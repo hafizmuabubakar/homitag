@@ -1,0 +1,28 @@
+---
+apiVersion: getambassador.io/v2
+kind: Module
+name: ambassador
+config:
+  diagnostics:
+    enabled: true
+  cors:
+    origins: '*'
+    methods:
+      - POST
+      - GET
+      - OPTIONS
+      - PATCH
+      - DELETE
+      - PUT
+    headers:
+      - Access-Control-Allow-Origin
+      - Content-Type
+      - Authorization
+      - Sentry-Trace
+      - user
+    exposed_headers: '*'
+    credentials: true
+  lua_scripts: |
+    function envoy_on_request(request_handle)
+      request_handle:headers():add("x-envoy-upstream-rq-timeout-ms", "0")
+    end

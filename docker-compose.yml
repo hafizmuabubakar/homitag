@@ -1,0 +1,68 @@
+version: '3.3'
+services:
+  ambassador:
+    image: datawire/ambassador:1.10.0
+    ports:
+      - 8080:8080
+    volumes:
+      - ./backend/ambassador:/ambassador/ambassador-config
+    environment:
+      - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
+
+  postgres:
+    build: backend/db/
+    container_name: postgres
+    ports:
+      - 5432:5432
+    restart: always
+    volumes:
+      - ./backend/db_data/:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB_LIST: $POSTGRES_DATABASE_LIST
+      POSTGRES_USER: $POSTGRES_USERNAME
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - $MACHINE_ADMINER_PORT:$ADMINER_PORT
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+
+  movie:
+    build: backend/movie/
+    container_name: movie
+    command: sh ./docker-entrypoint.sh
+    restart: always
+    ports:
+      - $MOVIE_PORT:$MOVIE_PORT
+    depends_on:
+      - postgres
+    environment:
+      MOVIE_PORT: $MOVIE_PORT
+      POSTGRES_USERNAME: $POSTGRES_USERNAME
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_HOST: postgres
+      POSTGRES_DATABASE: $MOVIE_DB
+      LOG_LEVEL: silly
+      NODE_ENV: development
+      DATABASE_URL: $DATABASE_URL
+
+  genre:
+    build: backend/genre/
+    container_name: genre
+    command: sh ./docker-entrypoint.sh
+    restart: always
+    ports:
+      - $GENRE_PORT:$GENRE_PORT
+    depends_on:
+      - postgres
+    environment:
+      GENRE_PORT: $GENRE_PORT
+      POSTGRES_USERNAME: $POSTGRES_USERNAME
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_HOST: postgres
+      POSTGRES_DATABASE: $GENRE_DB
+      DATABASE_URL: $DATABASE_URL
